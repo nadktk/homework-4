@@ -1,4 +1,3 @@
-console.log('hey there');
 const http = require('http');
 
 const server = http.createServer((req, res) => {
