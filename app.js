@@ -1,6 +1,5 @@
 const http = require('http');
-const url = require('url');
-const querystring = require('querystring');
+const { parse } = require('querystring');
 
 const pug = require('pug');
 
@@ -9,18 +8,30 @@ const compileResult = pug.compileFile('./views/result.pug');
 
 const server = http.createServer((req, res) => {
   if (req.method === 'GET') {
-    const { query } = url.parse(req.url, true);
-    res.setHeader('Content-Type', 'text/html');
-    res.write(compileForm({ fieldname: query.fieldname || 'default' }));
-    res.end();
+    const [url, params] = req.url.split('?');
+    if (url === '/') {
+      // send the form only for url '/'
+      const parsedParams = parse(params);
+      res.setHeader('Content-Type', 'text/html');
+      res.write(
+        compileForm({ fieldname: parsedParams.fieldname || 'default' }),
+      );
+      res.end();
+    } else {
+      // redirection to the main page for all other urls (url params are kept)
+      res.writeHead(302, {
+        Location: params ? `/?${params}` : '/',
+      });
+      res.end();
+    }
   }
   if (req.method === 'POST') {
     const body = [];
     req.on('data', (chunk) => body.push(chunk));
     req.on('end', () => {
-      const parsedBody = querystring.parse(Buffer.concat(body).toString());
-      const fieldname = Object.keys(parsedBody)[0];
-      const value = parsedBody[fieldname];
+      // send the result when all data is recieved
+      const parsedBody = parse(Buffer.concat(body).toString());
+      const [fieldname, value] = Object.entries(parsedBody)[0];
       res.setHeader('Content-Type', 'text/html');
       res.write(compileResult({ fieldname, value }));
       res.end();
