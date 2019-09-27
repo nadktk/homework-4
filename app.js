@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
       const parsedParams = parse(params);
       res.setHeader('Content-Type', 'text/html');
       res.write(
-        compileForm({ fieldname: parsedParams.fieldname || 'default' }),
+        compileForm({ fieldName: parsedParams.fieldName || 'default' }),
       );
       res.end();
     } else {
@@ -31,9 +31,9 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       // send the result when all data is recieved
       const parsedBody = parse(Buffer.concat(body).toString());
-      const [fieldname, value] = Object.entries(parsedBody)[0];
+      const [fieldName, value] = Object.entries(parsedBody)[0];
       res.setHeader('Content-Type', 'text/html');
-      res.write(compileResult({ fieldname, value }));
+      res.write(compileResult({ fieldName, value }));
       res.end();
     });
   }
